@@ -9,34 +9,51 @@
 import SpriteKit
 
 class GameScene: SKScene {
+    
+    // MARK: - Stored Properties
+    
+    var birdie: SKSpriteNode!
+    var skyColor = SKColor()
+    
+    let gravityValue: CGFloat = -5.0
+    
+    // MARK: - Methods Override
+    
     override func didMoveToView(view: SKView) {
         /* Setup your scene here */
-        let myLabel = SKLabelNode(fontNamed:"Chalkduster")
-        myLabel.text = "Hello, World!";
-        myLabel.fontSize = 65;
-        myLabel.position = CGPoint(x:CGRectGetMidX(self.frame), y:CGRectGetMidY(self.frame));
         
-        self.addChild(myLabel)
+        // Physics
+        self.physicsWorld.gravity = CGVectorMake(0.0, self.gravityValue)
+        
+        // Sky
+        self.skyColor = UIColor(red: 113.0/255.0, green: 197.0/255.0, blue: 207.0/255.0, alpha: 1.0)
+        self.backgroundColor = self.skyColor
+        
+        // Birdie
+        let birdieTexture1 = SKTexture(imageNamed: "birdie1")
+        birdieTexture1.filteringMode = SKTextureFilteringMode.Nearest
+        let birdieTexture2 = SKTexture(imageNamed: "birdie2")
+        birdieTexture2.filteringMode = SKTextureFilteringMode.Nearest
+        
+        let birdieFlappingAnimation = SKAction.animateWithTextures([birdieTexture1, birdieTexture2], timePerFrame: 0.2)
+        let repeatBirdieFlappingAnimationForever = SKAction.repeatActionForever(birdieFlappingAnimation)
+        
+        self.birdie = SKSpriteNode(texture: birdieTexture1)
+        self.birdie.setScale(2.0)
+        self.birdie.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
+        self.birdie.runAction(repeatBirdieFlappingAnimationForever)
+        self.addChild(self.birdie)
+        
+        // Ground
+//        let groundTexture = SKTexture(imageNamed: "ground")
+//        groundTexture.filteringMode = SKTextureFilteringMode.Nearest
+//        for index in 0 ..<
+        
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
        /* Called when a touch begins */
-        
-        for touch in touches {
-            let location = touch.locationInNode(self)
-            
-            let sprite = SKSpriteNode(imageNamed:"Spaceship")
-            
-            sprite.xScale = 0.5
-            sprite.yScale = 0.5
-            sprite.position = location
-            
-            let action = SKAction.rotateByAngle(CGFloat(M_PI), duration:1)
-            
-            sprite.runAction(SKAction.repeatActionForever(action))
-            
-            self.addChild(sprite)
-        }
+ 
     }
    
     override func update(currentTime: CFTimeInterval) {
