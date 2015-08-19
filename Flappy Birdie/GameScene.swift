@@ -14,13 +14,13 @@ class GameScene: SKScene {
     // MARK: - Stored Properties
     //**************************
     
-    var birdie: SKSpriteNode!
+    var birdieNode: SKSpriteNode!
     var skyColor = SKColor()
     
     let gravityValue: CGFloat = -5.0
     let spriteSizeScale: CGFloat = 2.0
     let impulseIntensity: CGFloat = 4.5
-    let verticalPipeGap = 100
+    let verticalGapBetweenPipes: CGFloat = 100.0
     
     //*************************
     // MARK: - Methods Override
@@ -57,17 +57,17 @@ class GameScene: SKScene {
         let repeatBirdieFlappingAnimationForever = SKAction.repeatActionForever(birdieFlappingAnimation)
         
         // instantiation
-        self.birdie = SKSpriteNode(texture: birdieTexture1)
-        self.birdie.setScale(self.spriteSizeScale)
-        self.birdie.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
-        self.birdie.runAction(repeatBirdieFlappingAnimationForever)
+        self.birdieNode = SKSpriteNode(texture: birdieTexture1)
+        self.birdieNode.setScale(self.spriteSizeScale)
+        self.birdieNode.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
+        self.birdieNode.runAction(repeatBirdieFlappingAnimationForever)
         
         // physics
-        self.birdie.physicsBody = SKPhysicsBody(circleOfRadius: self.birdie.size.height / 2)
-        self.birdie.physicsBody!.dynamic = true // <-- it'll be affected by interactions w/ the physics world
-        self.birdie.physicsBody!.allowsRotation = false
+        self.birdieNode.physicsBody = SKPhysicsBody(circleOfRadius: self.birdieNode.size.height / 2)
+        self.birdieNode.physicsBody!.dynamic = true // <-- it'll be affected by interactions w/ the physics world
+        self.birdieNode.physicsBody!.allowsRotation = false
         
-        self.addChild(self.birdie)
+        self.addChild(self.birdieNode)
         
         //*************
         // MARK: Ground
@@ -84,6 +84,50 @@ class GameScene: SKScene {
         
         self.addChild(ground)
         
+        //************
+        // MARK: Pipes
+        //************
+        
+//        for (_, arg) in ["pipeBottom", "pipeAbove"].enumerate() {
+//            let pipeTexture = SKTexture(imageNamed: arg)
+//            pipeTexture.filteringMode = SKTextureFilteringMode.Nearest
+//        }
+        
+        
+        let pipeVerticalMovementRange = CGFloat(arc4random() % UInt32(self.frame.size.height / 3))
+        
+        // bottom pipe
+        let bottomPipeTexture = SKTexture(imageNamed: "bottomPipe")
+        bottomPipeTexture.filteringMode = SKTextureFilteringMode.Nearest
+        let bottomPipeNode = SKSpriteNode(texture: bottomPipeTexture)
+        bottomPipeNode.setScale(self.spriteSizeScale)
+        bottomPipeNode.position = CGPointMake(0, pipeVerticalMovementRange)
+        bottomPipeNode.physicsBody = SKPhysicsBody(rectangleOfSize: bottomPipeNode.size)
+        bottomPipeNode.physicsBody!.dynamic = false
+        
+        // top pipe
+        let topPipeTexture = SKTexture(imageNamed: "topPipe")
+        topPipeTexture.filteringMode = SKTextureFilteringMode.Nearest
+        let topPipeNode = SKSpriteNode(texture: topPipeTexture)
+        topPipeNode.setScale(self.spriteSizeScale)
+        topPipeNode.position = CGPointMake(0, pipeVerticalMovementRange + bottomPipeNode.size.height + self.verticalGapBetweenPipes)
+        topPipeNode.physicsBody = SKPhysicsBody(rectangleOfSize: topPipeNode.size)
+        topPipeNode.physicsBody!.dynamic = false
+        
+        // both pipes combined
+        let pairOfPipesNodes = SKNode()
+        pairOfPipesNodes.position = CGPointMake(self.frame.size.width + bottomPipeTexture.size().width * 2, 0)
+        pairOfPipesNodes.zPosition = -10
+        
+        pairOfPipesNodes.addChild(bottomPipeNode)
+        pairOfPipesNodes.addChild(topPipeNode)
+        
+        // animate pipes
+        let animateBothPipes = SKAction.repeatActionForever(SKAction.moveByX(-1.0, y: 0, duration: 0.02))
+        pairOfPipesNodes.runAction(animateBothPipes)
+
+        self.addChild(pairOfPipesNodes)
+        
         //**************
         // MARK: Skyline
         //**************
@@ -93,13 +137,13 @@ class GameScene: SKScene {
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        self.birdie.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
-        self.birdie.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
+        self.birdieNode.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
+        self.birdieNode.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
     }
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
-        self.birdie.zRotation = self.clamp(-1, max: 0.5, value: self.birdie.physicsBody!.velocity.dy * (self.birdie.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
+        self.birdieNode.zRotation = self.clamp(-1, max: 0.5, value: self.birdieNode.physicsBody!.velocity.dy * (self.birdieNode.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
     }
     
     //***********************
