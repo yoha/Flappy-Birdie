@@ -19,6 +19,8 @@ class GameScene: SKScene {
     
     let gravityValue: CGFloat = -5.0
     let spriteSizeScale: CGFloat = 2.0
+    let impulseIntensity: CGFloat = 4.5
+    let verticalPipeGap = 100
     
     //*************************
     // MARK: - Methods Override
@@ -62,7 +64,7 @@ class GameScene: SKScene {
         
         // physics
         self.birdie.physicsBody = SKPhysicsBody(circleOfRadius: self.birdie.size.height / 2)
-        self.birdie.physicsBody!.dynamic = true
+        self.birdie.physicsBody!.dynamic = true // <-- it'll be affected by interactions w/ the physics world
         self.birdie.physicsBody!.allowsRotation = false
         
         self.addChild(self.birdie)
@@ -74,28 +76,37 @@ class GameScene: SKScene {
         let groundTexture = SKTexture(imageNamed: "ground")
         self.generateContinuousSpriteNodes(groundTexture, action: self.animateContinuousTextures(groundTexture, period: 0.02))
         
+        // physics
+        let ground = SKNode()
+        ground.position = CGPointMake(0, groundTexture.size().height)
+        ground.physicsBody = SKPhysicsBody(rectangleOfSize: CGSizeMake(self.frame.size.width, groundTexture.size().height * 2))
+        ground.physicsBody!.dynamic = false
+        
+        self.addChild(ground)
+        
         //**************
         // MARK: Skyline
         //**************
         
         let skylineTexture = SKTexture(imageNamed: "skyline")
-        self.generateContinuousSpriteNodes(skylineTexture, action: self.animateContinuousTextures(skylineTexture, period: 0.1), groundTextureHeight: groundTexture.size().height)
+        self.generateContinuousSpriteNodes(skylineTexture, action: self.animateContinuousTextures(skylineTexture, period: 0.1), zPosition: -20, groundTextureHeight: groundTexture.size().height)
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-       /* Called when a touch begins */
- 
+        self.birdie.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
+        self.birdie.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
     }
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
+        self.birdie.zRotation = self.clamp(-1, max: 0.5, value: self.birdie.physicsBody!.velocity.dy * (self.birdie.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
     }
     
     //***********************
     // MARK: - Custom Methods
     //***********************
 
-    func generateContinuousSpriteNodes(texture: SKTexture, action: SKAction, groundTextureHeight: CGFloat = 0) {
+    func generateContinuousSpriteNodes(texture: SKTexture, action: SKAction, zPosition: CGFloat = 0.0, groundTextureHeight: CGFloat = 0) {
         /**
         print(self.frame.size.width)
         print(texture.size().width)
@@ -107,6 +118,7 @@ class GameScene: SKScene {
         for index in 0 ..< 2 + Int(self.frame.size.width / (texture.size().width * 2)) {
             let spriteNode = SKSpriteNode(texture: texture)
             spriteNode.setScale(self.spriteSizeScale)
+            spriteNode.zPosition = zPosition
             spriteNode.position = CGPointMake(CGFloat(index) * spriteNode.size.width, spriteNode.size.height / 2 + groundTextureHeight * 2)
             spriteNode.runAction(action)
             self.addChild(spriteNode)
@@ -114,10 +126,15 @@ class GameScene: SKScene {
     }
     
     func animateContinuousTextures(texture: SKTexture, period: NSTimeInterval) -> SKAction {
-        print(texture.description)
         let animateInitialSprite = SKAction.moveByX(-texture.size().width * 2.0, y: 0.0, duration: period * Double(texture.size().width) * 2)
         let animateSubsequentSprite = SKAction.moveByX(texture.size().width * 2.0, y: 0.0, duration: 0)
         let animateSpriteForever = SKAction.repeatActionForever(SKAction.sequence([animateInitialSprite, animateSubsequentSprite]))
         return animateSpriteForever
+    }
+    
+    func clamp(min: CGFloat, max: CGFloat, value: CGFloat) -> CGFloat {
+        if value > max { return max }
+        else if value < min { return min }
+        else { return value }
     }
 }

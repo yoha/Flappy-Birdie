@@ -293,6 +293,7 @@
 				6573A5581B82E39700A1EA81 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
