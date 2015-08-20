@@ -14,9 +14,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Stored Properties
     //**************************
     
-    var birdieNode: SKSpriteNode!
     var skyColor: UIColor!
+    
+    var birdieNode: SKSpriteNode!
     var allMovingNodesExceptBirdie: SKNode!
+    var justPipeNodes: SKNode!
     
     let gravityValue: CGFloat = -5.0
     let spriteSizeScale: CGFloat = 2.0
@@ -27,6 +29,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let worldCategory: UInt32 = 1 << 1
     let pipeCategory: UInt32 = 1 << 2
     
+    var canRestart: Bool!
+    
 //    let birdCategory
     
     //*************************
@@ -35,6 +39,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func didMoveToView(view: SKView) {
         /* Setup your scene here */
+        
+        self.canRestart = false
         
         //**************
         // MARK: Physics
@@ -53,6 +59,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         //*************************************
         // MARK: All Moving Nodes Except Birdie
         //*************************************
+        
         self.allMovingNodesExceptBirdie = SKNode()
         self.addChild(self.allMovingNodesExceptBirdie)
         
@@ -115,6 +122,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // MARK: Pipes
         //************
         
+        self.justPipeNodes = SKNode()
+        self.allMovingNodesExceptBirdie.addChild(self.justPipeNodes)
+        
         let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)])
         let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay)
         self.runAction(generatePipesThenDelayRepeatForever)
@@ -124,6 +134,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if self.allMovingNodesExceptBirdie.speed > 0 {
             self.birdieNode.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
             self.birdieNode.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
+        }
+        // if self.canRestart == true --> if self.canRestart! (unsafe) --> if self.canRestart! && self.canRestart != nil -->
+        else if self.canRestart ?? false {
+            self.resetGame()
         }
     }
    
@@ -139,7 +153,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
             // flash background if contact is detected
             self.removeActionForKey("flash")
-            let flashSequenceAction = SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4)
+            let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true})])
             self.runAction(flashSequenceAction, withKey: "flash")
         }
     }
@@ -148,6 +162,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Custom Methods
     //***********************
 
+    func clamp(min: CGFloat, max: CGFloat, value: CGFloat) -> CGFloat {
+        if value > max { return max }
+        else if value < min { return min }
+        else { return value }
+    }
+
+    // MARK: for ground / skyline
+    
     func generateContinuousSpriteNodesForGroundOrSkyline(texture: SKTexture, action: SKAction, zPosition: CGFloat = 0.0, groundTextureHeight: CGFloat = 0) {
         /**
         print(self.frame.size.width)
@@ -174,11 +196,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return animateSpriteForever
     }
     
-    func clamp(min: CGFloat, max: CGFloat, value: CGFloat) -> CGFloat {
-        if value > max { return max }
-        else if value < min { return min }
-        else { return value }
-    }
+    // MARK: for pipes
     
     func generateTopAndBottomPipes() {
         
@@ -204,7 +222,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pairOfPipesNodes.addChild(bottomPipeNode)
         pairOfPipesNodes.addChild(topPipeNode)
         pairOfPipesNodes.runAction(moveAndRemoveBothPipes)
-        self.allMovingNodesExceptBirdie.addChild(pairOfPipesNodes)
+        self.justPipeNodes.addChild(pairOfPipesNodes)
     }
     
     func configureEachPipe(pipeTextureNamed: String, verticalPipePosition: CGFloat) -> SKSpriteNode {
@@ -218,5 +236,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pipeNode.physicsBody!.categoryBitMask = self.pipeCategory
         pipeNode.physicsBody!.contactTestBitMask = self.birdCategory
         return pipeNode
+    }
+    
+    // MARK: for the game
+    
+    func resetGame() {
+        self.birdieNode.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
+        self.birdieNode.physicsBody!.velocity = CGVectorMake(0, 0)
+        
+        self.justPipeNodes.removeAllChildren()
+        
+        self.canRestart = false
+        
+        self.allMovingNodesExceptBirdie.speed = 1.0
     }
 }
