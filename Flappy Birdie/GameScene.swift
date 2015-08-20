@@ -15,7 +15,6 @@ class GameScene: SKScene {
     //**************************
     
     var birdieNode: SKSpriteNode!
-    var skyColor = SKColor()
     
     let gravityValue: CGFloat = -5.0
     let spriteSizeScale: CGFloat = 2.0
@@ -39,8 +38,8 @@ class GameScene: SKScene {
         // MARK: Sky
         //**********
         
-        self.skyColor = UIColor(red: 113.0/255.0, green: 197.0/255.0, blue: 207.0/255.0, alpha: 1.0)
-        self.backgroundColor = self.skyColor
+        let skyColor = UIColor(red: 113.0/255.0, green: 197.0/255.0, blue: 207.0/255.0, alpha: 1.0)
+        self.backgroundColor = skyColor
         
         //*************
         // MARK: Birdie
@@ -74,7 +73,7 @@ class GameScene: SKScene {
         //*************
         
         let groundTexture = SKTexture(imageNamed: "ground")
-        self.generateContinuousSpriteNodes(groundTexture, action: self.animateContinuousTextures(groundTexture, period: 0.02))
+        self.generateContinuousSpriteNodesForBackgroundOrSkyline(groundTexture, action: self.animateContinuousTexturesForBackgroundOrSkyline(groundTexture, period: 0.02))
         
         // physics
         let ground = SKNode()
@@ -84,56 +83,20 @@ class GameScene: SKScene {
         
         self.addChild(ground)
         
-        //************
-        // MARK: Pipes
-        //************
-        
-//        for (_, arg) in ["pipeBottom", "pipeAbove"].enumerate() {
-//            let pipeTexture = SKTexture(imageNamed: arg)
-//            pipeTexture.filteringMode = SKTextureFilteringMode.Nearest
-//        }
-        
-        
-        let pipeVerticalMovementRange = CGFloat(arc4random() % UInt32(self.frame.size.height / 3))
-        
-        // bottom pipe
-        let bottomPipeTexture = SKTexture(imageNamed: "bottomPipe")
-        bottomPipeTexture.filteringMode = SKTextureFilteringMode.Nearest
-        let bottomPipeNode = SKSpriteNode(texture: bottomPipeTexture)
-        bottomPipeNode.setScale(self.spriteSizeScale)
-        bottomPipeNode.position = CGPointMake(0, pipeVerticalMovementRange)
-        bottomPipeNode.physicsBody = SKPhysicsBody(rectangleOfSize: bottomPipeNode.size)
-        bottomPipeNode.physicsBody!.dynamic = false
-        
-        // top pipe
-        let topPipeTexture = SKTexture(imageNamed: "topPipe")
-        topPipeTexture.filteringMode = SKTextureFilteringMode.Nearest
-        let topPipeNode = SKSpriteNode(texture: topPipeTexture)
-        topPipeNode.setScale(self.spriteSizeScale)
-        topPipeNode.position = CGPointMake(0, pipeVerticalMovementRange + bottomPipeNode.size.height + self.verticalGapBetweenPipes)
-        topPipeNode.physicsBody = SKPhysicsBody(rectangleOfSize: topPipeNode.size)
-        topPipeNode.physicsBody!.dynamic = false
-        
-        // both pipes combined
-        let pairOfPipesNodes = SKNode()
-        pairOfPipesNodes.position = CGPointMake(self.frame.size.width + bottomPipeTexture.size().width * 2, 0)
-        pairOfPipesNodes.zPosition = -10
-        
-        pairOfPipesNodes.addChild(bottomPipeNode)
-        pairOfPipesNodes.addChild(topPipeNode)
-        
-        // animate pipes
-        let animateBothPipes = SKAction.repeatActionForever(SKAction.moveByX(-1.0, y: 0, duration: 0.02))
-        pairOfPipesNodes.runAction(animateBothPipes)
-
-        self.addChild(pairOfPipesNodes)
-        
         //**************
         // MARK: Skyline
         //**************
         
         let skylineTexture = SKTexture(imageNamed: "skyline")
-        self.generateContinuousSpriteNodes(skylineTexture, action: self.animateContinuousTextures(skylineTexture, period: 0.1), zPosition: -20, groundTextureHeight: groundTexture.size().height)
+        self.generateContinuousSpriteNodesForBackgroundOrSkyline(skylineTexture, action: self.animateContinuousTexturesForBackgroundOrSkyline(skylineTexture, period: 0.1), zPosition: -20, groundTextureHeight: groundTexture.size().height)
+        
+        //************
+        // MARK: Pipes
+        //************
+        
+        let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)])
+        let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay)
+        self.runAction(generatePipesThenDelayRepeatForever)
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -150,7 +113,7 @@ class GameScene: SKScene {
     // MARK: - Custom Methods
     //***********************
 
-    func generateContinuousSpriteNodes(texture: SKTexture, action: SKAction, zPosition: CGFloat = 0.0, groundTextureHeight: CGFloat = 0) {
+    func generateContinuousSpriteNodesForBackgroundOrSkyline(texture: SKTexture, action: SKAction, zPosition: CGFloat = 0.0, groundTextureHeight: CGFloat = 0) {
         /**
         print(self.frame.size.width)
         print(texture.size().width)
@@ -169,8 +132,8 @@ class GameScene: SKScene {
         }
     }
     
-    func animateContinuousTextures(texture: SKTexture, period: NSTimeInterval) -> SKAction {
-        let animateInitialSprite = SKAction.moveByX(-texture.size().width * 2.0, y: 0.0, duration: period * Double(texture.size().width) * 2)
+    func animateContinuousTexturesForBackgroundOrSkyline(texture: SKTexture, period: NSTimeInterval) -> SKAction {
+        let animateInitialSprite = SKAction.moveByX(-texture.size().width * 2.0, y: 0.0, duration: period * NSTimeInterval(texture.size().width) * 2)
         let animateSubsequentSprite = SKAction.moveByX(texture.size().width * 2.0, y: 0.0, duration: 0)
         let animateSpriteForever = SKAction.repeatActionForever(SKAction.sequence([animateInitialSprite, animateSubsequentSprite]))
         return animateSpriteForever
@@ -180,5 +143,43 @@ class GameScene: SKScene {
         if value > max { return max }
         else if value < min { return min }
         else { return value }
+    }
+    
+    func generateTopAndBottomPipes() {
+        
+        let pipeVerticalMovementRange = CGFloat(arc4random() % UInt32(self.frame.size.height / 3))
+        
+        // bottom pipe
+        let bottomPipeNode = self.setupEachPipe("bottomPipe", verticalPipePosition: pipeVerticalMovementRange)
+        
+        // top pipe
+        let topPipeNode = self.setupEachPipe("topPipe", verticalPipePosition: pipeVerticalMovementRange + bottomPipeNode.size.height + self.verticalGapBetweenPipes)
+        
+        // animate pipes
+        let pipeHorizontalScrollingDistance = self.frame.size.width + 2 * bottomPipeNode.size.width
+        let moveBothPipesHorizontally = SKAction.moveByX(-pipeHorizontalScrollingDistance, y: 0.0, duration: NSTimeInterval(0.01 * pipeHorizontalScrollingDistance))
+        let removeBothPipes = SKAction.removeFromParent()
+        let moveAndRemoveBothPipes = SKAction.sequence([moveBothPipesHorizontally, removeBothPipes])
+        
+        // both pipes combined
+        let pairOfPipesNodes = SKNode()
+        pairOfPipesNodes.position = CGPointMake(self.frame.size.width + bottomPipeNode.size.width, 0)
+        pairOfPipesNodes.zPosition = -10
+        
+        pairOfPipesNodes.addChild(bottomPipeNode)
+        pairOfPipesNodes.addChild(topPipeNode)
+        pairOfPipesNodes.runAction(moveAndRemoveBothPipes)
+        self.addChild(pairOfPipesNodes)
+    }
+    
+    func setupEachPipe(pipeTextureNamed: String, verticalPipePosition: CGFloat) -> SKSpriteNode {
+        let pipeTexture = SKTexture(imageNamed: pipeTextureNamed)
+        pipeTexture.filteringMode = SKTextureFilteringMode.Nearest
+        let pipeNode = SKSpriteNode(texture: pipeTexture)
+        pipeNode.setScale(self.spriteSizeScale)
+        pipeNode.position = CGPointMake(0, verticalPipePosition)
+        pipeNode.physicsBody = SKPhysicsBody(rectangleOfSize: pipeNode.size)
+        pipeNode.physicsBody!.dynamic = false
+        return pipeNode
     }
 }
