@@ -16,6 +16,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var birdieNode: SKSpriteNode!
     var skyColor: UIColor!
+    var allMovingNodesExceptBirdie: SKNode!
     
     let gravityValue: CGFloat = -5.0
     let spriteSizeScale: CGFloat = 2.0
@@ -48,6 +49,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         self.skyColor = UIColor(red: 113.0/255.0, green: 197.0/255.0, blue: 207.0/255.0, alpha: 1.0)
         self.backgroundColor = skyColor
+        
+        //*************************************
+        // MARK: All Moving Nodes Except Birdie
+        //*************************************
+        self.allMovingNodesExceptBirdie = SKNode()
+        self.addChild(self.allMovingNodesExceptBirdie)
         
         //*************
         // MARK: Birdie
@@ -85,7 +92,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // textures
         let groundTexture = SKTexture(imageNamed: "ground")
-        self.generateContinuousSpriteNodesForBackgroundOrSkyline(groundTexture, action: self.animateContinuousTexturesForBackgroundOrSkyline(groundTexture, period: 0.02))
+        self.generateContinuousSpriteNodesForGroundOrSkyline(groundTexture, action: self.animateContinuousTexturesForBackgroundOrSkyline(groundTexture, period: 0.02))
         
         // physics
         let ground = SKNode()
@@ -102,7 +109,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // textures
         let skylineTexture = SKTexture(imageNamed: "skyline")
-        self.generateContinuousSpriteNodesForBackgroundOrSkyline(skylineTexture, action: self.animateContinuousTexturesForBackgroundOrSkyline(skylineTexture, period: 0.1), zPosition: -20, groundTextureHeight: groundTexture.size().height)
+        self.generateContinuousSpriteNodesForGroundOrSkyline(skylineTexture, action: self.animateContinuousTexturesForBackgroundOrSkyline(skylineTexture, period: 0.1), zPosition: -20, groundTextureHeight: groundTexture.size().height)
         
         //************
         // MARK: Pipes
@@ -114,8 +121,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        self.birdieNode.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
-        self.birdieNode.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
+        if self.allMovingNodesExceptBirdie.speed > 0 {
+            self.birdieNode.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
+            self.birdieNode.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
+        }
     }
    
     override func update(currentTime: CFTimeInterval) {
@@ -125,20 +134,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func didBeginContact(contact: SKPhysicsContact) {
         
-        //**********************************************
-        // MARK: flash background if contact is detected
-        //**********************************************
-        
-        self.removeActionForKey("flash")
-        let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4)])
-        self.runAction(flashSequenceAction, withKey: "flash")
+        if self.allMovingNodesExceptBirdie.speed > 0 {
+            self.allMovingNodesExceptBirdie.speed = 0
+    
+            // flash background if contact is detected
+            self.removeActionForKey("flash")
+            let flashSequenceAction = SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4)
+            self.runAction(flashSequenceAction, withKey: "flash")
+        }
     }
     
     //***********************
     // MARK: - Custom Methods
     //***********************
 
-    func generateContinuousSpriteNodesForBackgroundOrSkyline(texture: SKTexture, action: SKAction, zPosition: CGFloat = 0.0, groundTextureHeight: CGFloat = 0) {
+    func generateContinuousSpriteNodesForGroundOrSkyline(texture: SKTexture, action: SKAction, zPosition: CGFloat = 0.0, groundTextureHeight: CGFloat = 0) {
         /**
         print(self.frame.size.width)
         print(texture.size().width)
@@ -153,7 +163,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             spriteNode.zPosition = zPosition
             spriteNode.position = CGPointMake(CGFloat(index) * spriteNode.size.width, spriteNode.size.height / 2 + groundTextureHeight * 2)
             spriteNode.runAction(action)
-            self.addChild(spriteNode)
+            self.allMovingNodesExceptBirdie.addChild(spriteNode)
         }
     }
     
@@ -194,7 +204,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pairOfPipesNodes.addChild(bottomPipeNode)
         pairOfPipesNodes.addChild(topPipeNode)
         pairOfPipesNodes.runAction(moveAndRemoveBothPipes)
-        self.addChild(pairOfPipesNodes)
+        self.allMovingNodesExceptBirdie.addChild(pairOfPipesNodes)
     }
     
     func configureEachPipe(pipeTextureNamed: String, verticalPipePosition: CGFloat) -> SKSpriteNode {
