@@ -22,16 +22,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     let gravityValue: CGFloat = -5.0
     let spriteSizeScale: CGFloat = 2.0
-    let impulseIntensity: CGFloat = 4.5
-    let verticalGapBetweenPipes: CGFloat = 100.0
+    let impulseIntensity: CGFloat = 4.0
+    let verticalGapBetweenPipes: CGFloat = 120.0
     
     let birdCategory: UInt32 = 1 << 0
     let worldCategory: UInt32 = 1 << 1
     let pipeCategory: UInt32 = 1 << 2
     
     var canRestart: Bool!
-    
-//    let birdCategory
     
     //*************************
     // MARK: - Methods Override
@@ -74,7 +72,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         birdieTexture2.filteringMode = SKTextureFilteringMode.Nearest
         
         // flapping animation
-        let birdieFlappingAnimation = SKAction.animateWithTextures([birdieTexture1, birdieTexture2], timePerFrame: 0.2)
+        let birdieFlappingAnimation = SKAction.animateWithTextures([birdieTexture1, birdieTexture2], timePerFrame: 0.1)
         let repeatBirdieFlappingAnimationForever = SKAction.repeatActionForever(birdieFlappingAnimation)
         
         // instantiation
@@ -143,14 +141,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
-        self.birdieNode.zRotation = self.clamp(-1, max: 0.5, value: self.birdieNode.physicsBody!.velocity.dy * (self.birdieNode.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
+        if self.allMovingNodesExceptBirdie.speed > 0 {
+            self.birdieNode.zRotation = self.clamp(-1, max: 0.5, value: self.birdieNode.physicsBody!.velocity.dy * (self.birdieNode.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
+        }
     }
     
     func didBeginContact(contact: SKPhysicsContact) {
         
         if self.allMovingNodesExceptBirdie.speed > 0 {
             self.allMovingNodesExceptBirdie.speed = 0
-    
+            
+            // prevent landing on bottom pipe
+            self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory
+            self.birdieNode.runAction(SKAction.rotateByAngle(CGFloat(M_PI) * self.birdieNode.position.y * 0.01, duration: NSTimeInterval(self.birdieNode.position.y * 0.003)), completion: { () -> Void in
+                self.birdieNode.speed = 0
+            })
+            
             // flash background if contact is detected
             self.removeActionForKey("flash")
             let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true})])
@@ -243,6 +249,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func resetGame() {
         self.birdieNode.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
         self.birdieNode.physicsBody!.velocity = CGVectorMake(0, 0)
+        self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory | self.pipeCategory
+        self.birdieNode.zRotation = 0
+        self.birdieNode.speed = 1.0
         
         self.justPipeNodes.removeAllChildren()
         
