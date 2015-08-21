@@ -137,7 +137,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         //*************
         
         self.scoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
-        self.scoreLabelNode.fontSize = 48.0
+        self.scoreLabelNode.fontSize = 60.0
         self.scoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.75)
         self.scoreLabelNode.zPosition = 100
         self.scoreLabelNode.text = "\(self.score)"
