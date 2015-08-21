@@ -28,8 +28,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let birdCategory: UInt32 = 1 << 0
     let worldCategory: UInt32 = 1 << 1
     let pipeCategory: UInt32 = 1 << 2
+    let scoreCategory: UInt32 = 1 << 3
     
     var canRestart: Bool!
+    
+    var score = 0
+    var scoreLabelNode: SKLabelNode!
     
     //*************************
     // MARK: - Methods Override
@@ -79,6 +83,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.birdieNode = SKSpriteNode(texture: birdieTexture1)
         self.birdieNode.setScale(self.spriteSizeScale)
         self.birdieNode.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
+        self.birdieNode.speed = 1.5
         self.birdieNode.runAction(repeatBirdieFlappingAnimationForever)
         
         // physics
@@ -126,6 +131,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)])
         let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay)
         self.runAction(generatePipesThenDelayRepeatForever)
+        
+        //*************
+        // MARK: Scores
+        //*************
+        
+        self.scoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
+        self.scoreLabelNode.fontSize = 48.0
+        self.scoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.75)
+        self.scoreLabelNode.zPosition = 100
+        self.scoreLabelNode.text = "\(self.score)"
+        self.addChild(self.scoreLabelNode)
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -147,20 +163,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func didBeginContact(contact: SKPhysicsContact) {
-        
         if self.allMovingNodesExceptBirdie.speed > 0 {
-            self.allMovingNodesExceptBirdie.speed = 0
             
-            // prevent landing on bottom pipe
-            self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory
-            self.birdieNode.runAction(SKAction.rotateByAngle(CGFloat(M_PI) * self.birdieNode.position.y * 0.01, duration: NSTimeInterval(self.birdieNode.position.y * 0.003)), completion: { () -> Void in
-                self.birdieNode.speed = 0
-            })
-            
-            // flash background if contact is detected
-            self.removeActionForKey("flash")
-            let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true})])
-            self.runAction(flashSequenceAction, withKey: "flash")
+            // birdie has made contact w/ score entity
+            if (contact.bodyA.categoryBitMask & self.scoreCategory) == self.scoreCategory || (contact.bodyB.categoryBitMask & self.scoreCategory) == self.scoreCategory {
+                ++self.score
+                self.scoreLabelNode.text = "\(self.score)"
+                
+                // add some presentation spice when new score is displayed
+                self.scoreLabelNode.runAction(SKAction.sequence([SKAction.scaleTo(1.5, duration: 0.1), SKAction.scaleTo(1.0, duration: 0.1)]))
+            }
+                
+            // birdie has collided w/ the world || pipe entity
+            else {
+                self.allMovingNodesExceptBirdie.speed = 0
+                
+                // prevent landing on bottom pipe
+                self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory
+                self.birdieNode.runAction(SKAction.rotateByAngle(CGFloat(M_PI) * self.birdieNode.position.y * 0.01, duration: NSTimeInterval(self.birdieNode.position.y * 0.003)), completion: { () -> Void in
+                    self.birdieNode.speed = 0
+                })
+                
+                // flash background if contact is detected
+                self.removeActionForKey("flash")
+                let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true})])
+                self.runAction(flashSequenceAction, withKey: "flash")
+            }
         }
     }
     
@@ -227,6 +255,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         pairOfPipesNodes.addChild(bottomPipeNode)
         pairOfPipesNodes.addChild(topPipeNode)
+        
+        // invisible contact node right after pipes to detect passthrough (for scoring)
+        let pipesCheckpointNode = SKNode()
+        pipesCheckpointNode.position = CGPointMake(bottomPipeNode.size.width + self.birdieNode.size.width / 2, CGRectGetMidY(self.frame))
+        pipesCheckpointNode.physicsBody = SKPhysicsBody(rectangleOfSize: CGSizeMake(bottomPipeNode.size.width, self.frame.size.height))
+        pipesCheckpointNode.physicsBody!.dynamic = false
+        pipesCheckpointNode.physicsBody!.categoryBitMask = self.scoreCategory
+        pipesCheckpointNode.physicsBody!.contactTestBitMask = self.birdCategory
+        pairOfPipesNodes.addChild(pipesCheckpointNode)
+
         pairOfPipesNodes.runAction(moveAndRemoveBothPipes)
         self.justPipeNodes.addChild(pairOfPipesNodes)
     }
@@ -251,12 +289,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.birdieNode.physicsBody!.velocity = CGVectorMake(0, 0)
         self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory | self.pipeCategory
         self.birdieNode.zRotation = 0
-        self.birdieNode.speed = 1.0
+        self.birdieNode.speed = 1.5
         
         self.justPipeNodes.removeAllChildren()
         
         self.canRestart = false
         
         self.allMovingNodesExceptBirdie.speed = 1.0
+        
+        self.score = 0
+        self.scoreLabelNode.text = "0"
     }
 }
