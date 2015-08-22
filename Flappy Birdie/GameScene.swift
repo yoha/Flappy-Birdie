@@ -32,8 +32,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var canRestart: Bool!
     
+//    var numberOfTouchReceived = 0
     var score = 0
+    var highestScore = 0
     var scoreLabelNode: SKLabelNode!
+    var highestScoreLabelNode: SKLabelNode!
     
     //*************************
     // MARK: - Methods Override
@@ -142,9 +145,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.scoreLabelNode.zPosition = 100
         self.scoreLabelNode.text = "\(self.score)"
         self.addChild(self.scoreLabelNode)
+        
+        //********************
+        // MARK: Highest Score
+        //********************
+        
+        self.highestScoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
+        self.highestScoreLabelNode.fontSize = 18.0
+        self.highestScoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.95)
+        self.highestScoreLabelNode.zPosition = 99
+        self.highestScoreLabelNode.text = "Highest Score: \(self.highestScore)"
+        self.addChild(self.highestScoreLabelNode)
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+//        if ++self.numberOfTouchReceived == 1 {
+//            self.birdieNode.physicsBody!.dynamic = true
+//            
+//            let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)])
+//            let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay)
+//            self.runAction(generatePipesThenDelayRepeatForever)
+//        }
+//        
+
         if self.allMovingNodesExceptBirdie.speed > 0 {
             self.birdieNode.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
             self.birdieNode.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
@@ -184,9 +207,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     self.birdieNode.speed = 0
                 })
                 
-                // flash background if contact is detected
+                // flash background & set canRestart if contact is detected
                 self.removeActionForKey("flash")
-                let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true})])
+                let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true}), SKAction.runBlock({self.highestScoreLabelNode.text = "Highest Score: \(self.HighestScoreInString())"})])
                 self.runAction(flashSequenceAction, withKey: "flash")
             }
         }
@@ -200,6 +223,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if value > max { return max }
         else if value < min { return min }
         else { return value }
+    }
+    
+    func HighestScoreInString() -> String {
+        self.highestScore = self.score > self.highestScore ? self.score : self.highestScore
+        return String(self.highestScore)
     }
 
     // MARK: for ground / skyline
@@ -286,6 +314,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func resetGame() {
         self.birdieNode.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
+//        self.birdieNode.physicsBody!.dynamic = false
         self.birdieNode.physicsBody!.velocity = CGVectorMake(0, 0)
         self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory | self.pipeCategory
         self.birdieNode.zRotation = 0
@@ -296,6 +325,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.canRestart = false
         
         self.allMovingNodesExceptBirdie.speed = 1.0
+        
+//        self.numberOfTouchReceived = 0
         
         self.score = 0
         self.scoreLabelNode.text = "0"
