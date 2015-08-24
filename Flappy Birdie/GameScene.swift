@@ -23,7 +23,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let gravityValue: CGFloat = -5.0
     let spriteSizeScale: CGFloat = 2.0
     let impulseIntensity: CGFloat = 4.0
-    let verticalGapBetweenPipes: CGFloat = 120.0
+    let verticalGapBetweenPipes: CGFloat = 100.0
     
     let birdCategory: UInt32 = 1 << 0
     let worldCategory: UInt32 = 1 << 1
@@ -169,6 +169,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 //        
 
         if self.allMovingNodesExceptBirdie.speed > 0 {
+            self.runAction(SKAction.playSoundFileNamed("flapWings.caf", waitForCompletion: true))
             self.birdieNode.physicsBody!.velocity = CGVectorMake(0.0, 0.0)
             self.birdieNode.physicsBody!.applyImpulse(CGVectorMake(0.0, self.impulseIntensity))
         }
@@ -187,11 +188,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func didBeginContact(contact: SKPhysicsContact) {
         if self.allMovingNodesExceptBirdie.speed > 0 {
-            
+        
             // birdie has made contact w/ score entity
             if (contact.bodyA.categoryBitMask & self.scoreCategory) == self.scoreCategory || (contact.bodyB.categoryBitMask & self.scoreCategory) == self.scoreCategory {
+                self.runAction(SKAction.playSoundFileNamed("score.aac", waitForCompletion: false))
                 ++self.score
                 self.scoreLabelNode.text = "\(self.score)"
+                
                 
                 // add some presentation spice when new score is displayed
                 self.scoreLabelNode.runAction(SKAction.sequence([SKAction.scaleTo(1.5, duration: 0.1), SKAction.scaleTo(1.0, duration: 0.1)]))
@@ -207,9 +210,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     self.birdieNode.speed = 0
                 })
                 
-                // flash background & set canRestart if contact is detected
+                // Sound crash tone, flash background & set canRestart if contact is detected
                 self.removeActionForKey("flash")
-                let flashSequenceAction = SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true}), SKAction.runBlock({self.highestScoreLabelNode.text = "Highest Score: \(self.HighestScoreInString())"})])
+                let flashSequenceAction = SKAction.sequence([SKAction.playSoundFileNamed("crash.mp3", waitForCompletion: false), SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true}), SKAction.runBlock({self.highestScoreLabelNode.text = "Highest Score: \(self.HighestScoreInString())"})])
                 self.runAction(flashSequenceAction, withKey: "flash")
             }
         }

@@ -14,6 +14,9 @@
 		6573A54D1B82E39700A1EA81 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6573A54B1B82E39700A1EA81 /* Main.storyboard */; };
 		6573A54F1B82E39700A1EA81 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6573A54E1B82E39700A1EA81 /* Assets.xcassets */; };
 		6573A5521B82E39700A1EA81 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6573A5501B82E39700A1EA81 /* LaunchScreen.storyboard */; };
+		65DAE7CD1B8AC99C00E43FD1 /* crash.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 65DAE7CC1B8AC99C00E43FD1 /* crash.mp3 */; };
+		65DAE7D11B8AD10800E43FD1 /* flapWings.caf in Resources */ = {isa = PBXBuildFile; fileRef = 65DAE7D01B8AD10800E43FD1 /* flapWings.caf */; };
+		65DAE7DF1B8AD9ED00E43FD1 /* score.aac in Resources */ = {isa = PBXBuildFile; fileRef = 65DAE7DE1B8AD9EC00E43FD1 /* score.aac */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 		6573A54E1B82E39700A1EA81 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6573A5511B82E39700A1EA81 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6573A5531B82E39700A1EA81 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		65DAE7CC1B8AC99C00E43FD1 /* crash.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = crash.mp3; sourceTree = "<group>"; };
+		65DAE7D01B8AD10800E43FD1 /* flapWings.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = flapWings.caf; sourceTree = "<group>"; };
+		65DAE7DE1B8AD9EC00E43FD1 /* score.aac */ = {isa = PBXFileReference; lastKnownFileType = file; path = score.aac; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +70,9 @@
 				6573A5491B82E39700A1EA81 /* GameViewController.swift */,
 				6573A54B1B82E39700A1EA81 /* Main.storyboard */,
 				6573A54E1B82E39700A1EA81 /* Assets.xcassets */,
+				65DAE7CC1B8AC99C00E43FD1 /* crash.mp3 */,
+				65DAE7D01B8AD10800E43FD1 /* flapWings.caf */,
+				65DAE7DE1B8AD9EC00E43FD1 /* score.aac */,
 				6573A5501B82E39700A1EA81 /* LaunchScreen.storyboard */,
 				6573A5531B82E39700A1EA81 /* Info.plist */,
 			);
@@ -101,6 +110,7 @@
 				TargetAttributes = {
 					6573A53F1B82E39700A1EA81 = {
 						CreatedOnToolsVersion = 7.0;
+						DevelopmentTeam = 4Z5JKF2M6S;
 					};
 				};
 			};
@@ -127,6 +137,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65DAE7CD1B8AC99C00E43FD1 /* crash.mp3 in Resources */,
+				65DAE7DF1B8AD9ED00E43FD1 /* score.aac in Resources */,
+				65DAE7D11B8AD10800E43FD1 /* flapWings.caf in Resources */,
 				6573A5461B82E39700A1EA81 /* GameScene.sks in Resources */,
 				6573A5521B82E39700A1EA81 /* LaunchScreen.storyboard in Resources */,
 				6573A54F1B82E39700A1EA81 /* Assets.xcassets in Resources */,
@@ -254,10 +267,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = "Flappy Birdie/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.example.Flappy-Birdie";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -266,10 +283,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = "Flappy Birdie/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.4;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.example.Flappy-Birdie";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
