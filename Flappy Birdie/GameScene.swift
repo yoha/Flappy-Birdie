@@ -139,22 +139,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // MARK: Scores
         //*************
         
-        self.scoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
-        self.scoreLabelNode.fontSize = 60.0
-        self.scoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.75)
-        self.scoreLabelNode.zPosition = 100
-        self.scoreLabelNode.text = "\(self.score)"
+        self.scoreLabelNode = self.makeDropShadowLabelNodeWith(fontName: "MarkerFelt-Wide", fontSize: 60.0, yPositionOffet: 0.75, zPosition: 3, scoreText: "\(self.score)")
         self.addChild(self.scoreLabelNode)
         
         //********************
         // MARK: Highest Score
         //********************
         
-        self.highestScoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
-        self.highestScoreLabelNode.fontSize = 18.0
-        self.highestScoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.95)
-        self.highestScoreLabelNode.zPosition = 99
-        self.highestScoreLabelNode.text = "Highest Score: \(self.highestScore)"
+        self.highestScoreLabelNode = self.makeDropShadowLabelNodeWith(fontName: "MarkerFelt-Wide", fontSize: 18.0, yPositionOffet: 0.95, zPosition: 1, scoreText: "Highest Score: \(self.highestScore)")
         self.addChild(self.highestScoreLabelNode)
     }
     
@@ -312,6 +304,44 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pipeNode.physicsBody!.contactTestBitMask = self.birdCategory
         return pipeNode
     }
+    
+    // MARK: for scoring
+    
+    func makeDropShadowLabelNodeWith(fontName name: String, fontSize size: CGFloat, yPositionOffet offset: CGFloat, zPosition zPos: CGFloat, scoreText text: String) -> SKLabelNode {
+        
+        let offsetX: CGFloat = 1.0
+        let offsetY: CGFloat = 1.0
+        
+        let labelNode = SKLabelNode(fontNamed: name)
+        labelNode.fontSize = size
+        labelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * offset)
+        labelNode.zPosition = zPos
+        labelNode.text = text
+        
+        let labelShadowNode = SKLabelNode(fontNamed: name)
+        labelShadowNode.fontSize = labelNode.fontSize
+        labelShadowNode.fontColor = UIColor.blackColor()
+        labelShadowNode.position = CGPointMake(labelNode.position.x - offsetX, labelNode.position.y - offsetY)
+        labelShadowNode.zPosition = labelNode.zPosition - 1
+        labelShadowNode.text = labelNode.text!
+        self.addChild(labelShadowNode)
+        
+        return labelNode
+    }
+    
+//    self.highestScoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
+//    self.highestScoreLabelNode.fontSize = 18.0
+//    self.highestScoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.95)
+//    self.highestScoreLabelNode.zPosition = 99
+//    self.highestScoreLabelNode.text = "Highest Score: \(self.highestScore)"
+//    self.addChild(self.highestScoreLabelNode)
+    
+//    self.scoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
+//    self.scoreLabelNode.fontSize = 60.0
+//    self.scoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.75)
+//    self.scoreLabelNode.zPosition = 100
+//    self.scoreLabelNode.text = "\(self.score)"
+//    self.addChild(self.scoreLabelNode)
     
     // MARK: for the game
     
