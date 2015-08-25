@@ -36,6 +36,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var score = 0
     var highestScore = 0
     var scoreLabelNode: SKLabelNode!
+    var scoreLabelShadowNode: SKLabelNode!
     var highestScoreLabelNode: SKLabelNode!
     
     //*************************
@@ -141,6 +142,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         self.scoreLabelNode = self.makeDropShadowLabelNodeWith(fontName: "MarkerFelt-Wide", fontSize: 60.0, yPositionOffet: 0.75, zPosition: 3, scoreText: "\(self.score)")
         self.addChild(self.scoreLabelNode)
+        self.scoreLabelShadowNode = SKLabelNode()
         
         //********************
         // MARK: Highest Score
@@ -186,7 +188,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 self.runAction(SKAction.playSoundFileNamed("score.aac", waitForCompletion: false))
                 ++self.score
                 self.scoreLabelNode.text = "\(self.score)"
-                
+                self.scoreLabelShadowNode = self.scoreLabelNode.children[0] as! SKLabelNode
+                self.scoreLabelShadowNode.text = "\(self.score)"
                 
                 // add some presentation spice when new score is displayed
                 self.scoreLabelNode.runAction(SKAction.sequence([SKAction.scaleTo(1.5, duration: 0.1), SKAction.scaleTo(1.0, duration: 0.1)]))
@@ -204,7 +207,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 // Sound crash tone, flash background & set canRestart if contact is detected
                 self.removeActionForKey("flash")
-                let flashSequenceAction = SKAction.sequence([SKAction.playSoundFileNamed("crash.mp3", waitForCompletion: false), SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true}), SKAction.runBlock({self.highestScoreLabelNode.text = "Highest Score: \(self.HighestScoreInString())"})])
+                let flashSequenceAction = SKAction.sequence([SKAction.playSoundFileNamed("crash.mp3", waitForCompletion: false), SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.canRestart = true}), SKAction.runBlock({self.highestScoreLabelNode.text = "Highest Score: \(self.HighestScoreInString())"; (self.highestScoreLabelNode.children[0] as! SKLabelNode).text = "Highest Score: \(self.HighestScoreInString())"})])
                 self.runAction(flashSequenceAction, withKey: "flash")
             }
         }
@@ -309,39 +312,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func makeDropShadowLabelNodeWith(fontName name: String, fontSize size: CGFloat, yPositionOffet offset: CGFloat, zPosition zPos: CGFloat, scoreText text: String) -> SKLabelNode {
         
-        let offsetX: CGFloat = 1.0
-        let offsetY: CGFloat = 1.0
+        let offsetX: CGFloat = 23.0
+        let offsetY: CGFloat = 23.0
         
         let labelNode = SKLabelNode(fontNamed: name)
         labelNode.fontSize = size
         labelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * offset)
+        print("labelNode: \(labelNode.position)")
         labelNode.zPosition = zPos
         labelNode.text = text
         
         let labelShadowNode = SKLabelNode(fontNamed: name)
         labelShadowNode.fontSize = labelNode.fontSize
         labelShadowNode.fontColor = UIColor.blackColor()
-        labelShadowNode.position = CGPointMake(labelNode.position.x - offsetX, labelNode.position.y - offsetY)
+//        labelShadowNode.position = CGPointMake(labelNode.position.x - offsetX, labelNode.position.y - offsetY)
+        labelShadowNode.position = CGPointMake(100, 20)
+//        labelShadowNode.position = CGPointMake(CGRectGetMidX(self.frame) - offsetX, (self.frame.size.height * offset) - offsetY)
+        print("labelShadowNode: \(labelShadowNode.position)")
         labelShadowNode.zPosition = labelNode.zPosition - 1
         labelShadowNode.text = labelNode.text!
-        self.addChild(labelShadowNode)
+        labelNode.addChild(labelShadowNode)
         
         return labelNode
     }
-    
-//    self.highestScoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
-//    self.highestScoreLabelNode.fontSize = 18.0
-//    self.highestScoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.95)
-//    self.highestScoreLabelNode.zPosition = 99
-//    self.highestScoreLabelNode.text = "Highest Score: \(self.highestScore)"
-//    self.addChild(self.highestScoreLabelNode)
-    
-//    self.scoreLabelNode = SKLabelNode(fontNamed: "MarkerFelt-Wide")
-//    self.scoreLabelNode.fontSize = 60.0
-//    self.scoreLabelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * 0.75)
-//    self.scoreLabelNode.zPosition = 100
-//    self.scoreLabelNode.text = "\(self.score)"
-//    self.addChild(self.scoreLabelNode)
     
     // MARK: for the game
     
@@ -363,5 +356,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         self.score = 0
         self.scoreLabelNode.text = "0"
+        self.scoreLabelShadowNode.text = "0"
     }
 }
