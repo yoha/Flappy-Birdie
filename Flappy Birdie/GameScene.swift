@@ -140,7 +140,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // MARK: Scores
         //*************
         
-        self.scoreLabelNode = self.makeDropShadowLabelNodeWith(fontName: "MarkerFelt-Wide", fontSize: 60.0, yPositionOffet: 0.75, zPosition: 3, scoreText: "\(self.score)")
+        self.scoreLabelNode = self.makeDropShadowLabelNodeWith(fontName: "MarkerFelt-Wide", fontSize: 60.0, yPositionOffet: 0.75, scoreText: "\(self.score)")
         self.addChild(self.scoreLabelNode)
         self.scoreLabelShadowNode = SKLabelNode()
         
@@ -148,7 +148,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // MARK: Highest Score
         //********************
         
-        self.highestScoreLabelNode = self.makeDropShadowLabelNodeWith(fontName: "MarkerFelt-Wide", fontSize: 18.0, yPositionOffet: 0.95, zPosition: 1, scoreText: "Highest Score: \(self.highestScore)")
+        self.highestScoreLabelNode = self.makeDropShadowLabelNodeWith(fontName: "MarkerFelt-Wide", fontSize: 18.0, yPositionOffet: 0.95, scoreText: "Highest Score: \(self.highestScore)")
         self.addChild(self.highestScoreLabelNode)
     }
     
@@ -310,25 +310,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: for scoring
     
-    func makeDropShadowLabelNodeWith(fontName name: String, fontSize size: CGFloat, yPositionOffet offset: CGFloat, zPosition zPos: CGFloat, scoreText text: String) -> SKLabelNode {
+    func makeDropShadowLabelNodeWith(fontName name: String, fontSize size: CGFloat, yPositionOffet offset: CGFloat, scoreText text: String) -> SKLabelNode {
         
-        let offsetX: CGFloat = 23.0
-        let offsetY: CGFloat = 23.0
+        let offsetX: CGFloat = 1.0
+        let offsetY: CGFloat = 1.0
         
         let labelNode = SKLabelNode(fontNamed: name)
         labelNode.fontSize = size
         labelNode.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.size.height * offset)
-        print("labelNode: \(labelNode.position)")
-        labelNode.zPosition = zPos
         labelNode.text = text
         
         let labelShadowNode = SKLabelNode(fontNamed: name)
         labelShadowNode.fontSize = labelNode.fontSize
         labelShadowNode.fontColor = UIColor.blackColor()
-//        labelShadowNode.position = CGPointMake(labelNode.position.x - offsetX, labelNode.position.y - offsetY)
-        labelShadowNode.position = CGPointMake(100, 20)
-//        labelShadowNode.position = CGPointMake(CGRectGetMidX(self.frame) - offsetX, (self.frame.size.height * offset) - offsetY)
-        print("labelShadowNode: \(labelShadowNode.position)")
+        labelShadowNode.position = CGPointMake(offsetX, offsetY)
         labelShadowNode.zPosition = labelNode.zPosition - 1
         labelShadowNode.text = labelNode.text!
         labelNode.addChild(labelShadowNode)
