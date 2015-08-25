@@ -33,7 +33,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var canRestart: Bool!
     
 //    var numberOfTouchReceived = 0
-    var score = 0
+    var score = 0 {
+        didSet {
+            self.scoreLabelNode.text = "\(score)"
+            self.scoreLabelShadowNode = self.scoreLabelNode.children[0] as! SKLabelNode
+            self.scoreLabelShadowNode.text = "\(self.score)"
+        }
+    }
     var highestScore = 0
     var scoreLabelNode: SKLabelNode!
     var scoreLabelShadowNode: SKLabelNode!
@@ -187,9 +193,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if (contact.bodyA.categoryBitMask & self.scoreCategory) == self.scoreCategory || (contact.bodyB.categoryBitMask & self.scoreCategory) == self.scoreCategory {
                 self.runAction(SKAction.playSoundFileNamed("score.aac", waitForCompletion: false))
                 ++self.score
-                self.scoreLabelNode.text = "\(self.score)"
-                self.scoreLabelShadowNode = self.scoreLabelNode.children[0] as! SKLabelNode
-                self.scoreLabelShadowNode.text = "\(self.score)"
+//                self.scoreLabelShadowNode = self.scoreLabelNode.children[0] as! SKLabelNode
+//                self.scoreLabelShadowNode.text = "\(self.score)"
                 
                 // add some presentation spice when new score is displayed
                 self.scoreLabelNode.runAction(SKAction.sequence([SKAction.scaleTo(1.5, duration: 0.1), SKAction.scaleTo(1.0, duration: 0.1)]))
