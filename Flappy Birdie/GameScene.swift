@@ -6,8 +6,7 @@
 //  Copyright (c) 2015 Yohannes Wijaya. All rights reserved.
 //
 //todo:
-//1. investigate why birdie stops flapping after a few game restarts.
-//2. investigate game crash w/ the error "skLabelNode cannot be cast to skSpriteNode" but ok on simulator.
+//1. investigate game crash w/ the error "skLabelNode cannot be cast to skSpriteNode" but ok on simulator.
 
 import SpriteKit
 
@@ -38,14 +37,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var score = 0 {
         didSet {
             self.scoreLabelNode.text = "\(score)"
-            self.scoreLabelShadowNode = self.scoreLabelNode.children.first as! SKLabelNode
+            
+            if #available(iOS 9, *) { self.scoreLabelShadowNode = self.scoreLabelNode.children.first! as! SKLabelNode }
+            else { self.scoreLabelShadowNode = NSArray(array: self.scoreLabelNode.children).firstObject! as! SKLabelNode }
+            
             self.scoreLabelShadowNode.text = "\(self.score)"
         }
     }
-    var highestScore = 0
+    var highestScore = 0 {
+        didSet {
+            self.highestScoreLabelNode.text = "Highest Score: \(self.highestScore)"
+            
+            if #available(iOS 9, *) { self.highestScoreLabelShadowNode = self.highestScoreLabelNode.children.first! as! SKLabelNode }
+            else { self.highestScoreLabelShadowNode = NSArray(array: self.highestScoreLabelNode.children).firstObject! as! SKLabelNode }
+            
+            self.highestScoreLabelShadowNode.text = "Highest Score: \(self.highestScore)"
+        }
+    }
     var scoreLabelNode: SKLabelNode!
     var scoreLabelShadowNode: SKLabelNode!
     var highestScoreLabelNode: SKLabelNode!
+    var highestScoreLabelShadowNode: SKLabelNode!
     
     //*************************
     // MARK: - Methods Override
@@ -210,7 +222,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 // Sound crash tone & flash background if contact is detected
                 self.removeActionForKey("flash")
-                let flashSequenceAction = SKAction.sequence([SKAction.playSoundFileNamed("crash.mp3", waitForCompletion: false), SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.highestScoreLabelNode.text = "Highest Score: \(self.HighestScoreInString())"; (self.highestScoreLabelNode.children.first as! SKLabelNode).text = "Highest Score: \(self.HighestScoreInString())"})])
+                let flashSequenceAction = SKAction.sequence([SKAction.playSoundFileNamed("crash.mp3", waitForCompletion: false), SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.calculateHighestScore()})])
                 self.runAction(flashSequenceAction, withKey: "flash")
 
                 let alertController = UIAlertController(title: "Game Over", message: "What's your move?", preferredStyle: UIAlertControllerStyle.Alert)
@@ -231,9 +243,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         else { return value }
     }
     
-    func HighestScoreInString() -> String {
+    func calculateHighestScore() {
         self.highestScore = self.score > self.highestScore ? self.score : self.highestScore
-        return String(self.highestScore)
     }
 
     // MARK: for ground / skyline
