@@ -5,6 +5,9 @@
 //  Created by Yohannes Wijaya on 8/18/15.
 //  Copyright (c) 2015 Yohannes Wijaya. All rights reserved.
 //
+//todo:
+//1. investigate why birdie stops flapping after a few game restarts.
+//2. investigate game crash w/ the error "skLabelNode cannot be cast to skSpriteNode" but ok on simulator.
 
 import SpriteKit
 
@@ -30,7 +33,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let pipeCategory: UInt32 = 1 << 2
     let scoreCategory: UInt32 = 1 << 3
     
-//    var numberOfTouchReceived = 0 // <--
+    var numberOfTouchReceived = 0 // <--
     
     var score = 0 {
         didSet {
@@ -95,7 +98,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // physics
         self.birdieNode.physicsBody = SKPhysicsBody(circleOfRadius: self.birdieNode.size.height / 2)
-        self.birdieNode.physicsBody!.dynamic = true // <-- it'll be affected by interactions w/ the physics world
+        self.birdieNode.physicsBody!.dynamic = false // <-- it'll be affected by interactions w/ the physics world
         self.birdieNode.physicsBody!.allowsRotation = false
         self.birdieNode.physicsBody!.categoryBitMask = self.birdCategory
         self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory | self.pipeCategory
@@ -133,11 +136,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         //************
         
         self.justPipeNodes = SKNode()
-        self.allMovingNodesExceptBirdie.addChild(self.justPipeNodes)
-        
-        let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)])
-        let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay)
-        self.runAction(generatePipesThenDelayRepeatForever)
         
         //*************
         // MARK: Scores
@@ -156,13 +154,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-//        if ++self.numberOfTouchReceived == 1 { // <--
-//            self.birdieNode.physicsBody!.dynamic = true // <--
-//            
-//            let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)]) // <--
-//            let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay) // <--
-//            self.runAction(generatePipesThenDelayRepeatForever) // <--
-//        } // <--
+        
+        //************
+        // MARK: Pipes
+        //************
+        
+        if ++self.numberOfTouchReceived == 1 {
+            self.allMovingNodesExceptBirdie.addChild(self.justPipeNodes)
+            self.birdieNode.physicsBody!.dynamic = true
+            
+            let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)]) // <--
+            let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay)
+            self.runAction(generatePipesThenDelayRepeatForever)
+        }
         
         if self.allMovingNodesExceptBirdie.speed > 0 {
             self.runAction(SKAction.playSoundFileNamed("flapWings.caf", waitForCompletion: true))
@@ -209,9 +213,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 let flashSequenceAction = SKAction.sequence([SKAction.playSoundFileNamed("crash.mp3", waitForCompletion: false), SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({self.backgroundColor = UIColor.redColor()}), SKAction.waitForDuration(0.05), SKAction.runBlock({self.backgroundColor = self.skyColor}), SKAction.waitForDuration(0.05)]), count: 4), SKAction.runBlock({self.highestScoreLabelNode.text = "Highest Score: \(self.HighestScoreInString())"; (self.highestScoreLabelNode.children.first as! SKLabelNode).text = "Highest Score: \(self.HighestScoreInString())"})])
                 self.runAction(flashSequenceAction, withKey: "flash")
 
-                let alertController = UIAlertController(title: "Game Over", message: "Play again?", preferredStyle: UIAlertControllerStyle.Alert)
-                alertController.addAction(UIAlertAction(title: "Hit it!", style: UIAlertActionStyle.Default, handler: resetGame))
-                alertController.addAction(UIAlertAction(title: "I quit", style: UIAlertActionStyle.Cancel, handler: nil))
+                let alertController = UIAlertController(title: "Game Over", message: "What's your move?", preferredStyle: UIAlertControllerStyle.Alert)
+                alertController.addAction(UIAlertAction(title: "Play again!", style: UIAlertActionStyle.Default, handler: resetGame))
+                alertController.addAction(UIAlertAction(title: "Quit!", style: UIAlertActionStyle.Cancel, handler: nil))
                 self.view!.window!.rootViewController!.presentViewController(alertController, animated: true, completion: nil)
             }
         }
@@ -339,18 +343,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func resetGame(alertAction: UIAlertAction) {
         self.birdieNode.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
-//        self.birdieNode.physicsBody!.dynamic = false // <--
+        self.birdieNode.physicsBody!.dynamic = false // <--
         self.birdieNode.physicsBody!.velocity = CGVectorMake(0, 0)
         self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory | self.pipeCategory
         self.birdieNode.zRotation = 0
         self.birdieNode.speed = 1.5
         
         self.justPipeNodes.removeAllChildren()
-//        self.justPipeNodes.removeFromParent() // <--
+        self.justPipeNodes.removeFromParent()
+        self.removeAllActions()
         
         self.allMovingNodesExceptBirdie.speed = 1.0
         
-//        self.numberOfTouchReceived = 0 // <--
+        self.numberOfTouchReceived = 0 // <--
         
         self.score = 0
         self.scoreLabelNode.text = "0"
