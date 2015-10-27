@@ -32,7 +32,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let pipeCategory: UInt32 = 1 << 2
     let scoreCategory: UInt32 = 1 << 3
     
-    var numberOfTouchReceived = 0 // <--
+    var numberOfTouchReceived = 0
     
     var score = 0 {
         didSet {
@@ -40,7 +40,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             if #available(iOS 9, *) { self.scoreLabelShadowNode = self.scoreLabelNode.children.first! as! SKLabelNode }
             else { self.scoreLabelShadowNode = NSArray(array: self.scoreLabelNode.children).firstObject! as! SKLabelNode }
-            
             self.scoreLabelShadowNode.text = "\(self.score)"
         }
     }
@@ -175,7 +174,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.allMovingNodesExceptBirdie.addChild(self.justPipeNodes)
             self.birdieNode.physicsBody!.dynamic = true
             
-            let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)]) // <--
+            let generatePipesThenDelay = SKAction.sequence([SKAction.runBlock(self.generateTopAndBottomPipes), SKAction.waitForDuration(2.0)])
             let generatePipesThenDelayRepeatForever = SKAction.repeatActionForever(generatePipesThenDelay)
             self.runAction(generatePipesThenDelayRepeatForever)
         }
@@ -354,7 +353,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func resetGame(alertAction: UIAlertAction) {
         self.birdieNode.position = CGPointMake(self.frame.size.width / 2.5, CGRectGetMidY(self.frame))
-        self.birdieNode.physicsBody!.dynamic = false // <--
+        self.birdieNode.physicsBody!.dynamic = false
         self.birdieNode.physicsBody!.velocity = CGVectorMake(0, 0)
         self.birdieNode.physicsBody!.collisionBitMask = self.worldCategory | self.pipeCategory
         self.birdieNode.zRotation = 0
@@ -366,7 +365,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         self.allMovingNodesExceptBirdie.speed = 1.0
         
-        self.numberOfTouchReceived = 0 // <--
+        self.numberOfTouchReceived = 0
         
         self.score = 0
         self.scoreLabelNode.text = "0"
